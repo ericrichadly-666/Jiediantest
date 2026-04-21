@@ -141,10 +141,20 @@ Deno.serve(async (req) => {
                         targetConn.close();
                     }
                 };
+socket.onmessage = (e) => wsToTcp(e.data);
 
-                socket.onmessage = (e) => wsToTcp(e.data);
-                socket.onclose = () => targetConn.close();
-                socket.onerror = () => targetConn.close();
+// 增加安全关闭函数
+const safeClose = () => {
+    try {
+        targetConn.close();
+    } catch (e) {
+        // 如果资源已经释放，忽略 BadResource 错误
+    }
+};
+
+socket.onclose = safeClose;
+socket.onerror = safeClose;
+                
                 
                 tcpToWs();
             }
